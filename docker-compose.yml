@@ -1,0 +1,65 @@
+version: '3.1'
+
+services:
+
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    restart: always
+    ports:
+      - 54322:80
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - flat-network
+    env_file: .env
+
+  db:
+    image: mysql:latest
+    container_name: db
+    restart: always
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - flat-network
+    env_file: .env
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - 8811:80
+    environment:
+      - PMA_HOSTS=db:3306
+    networks:
+      - flat-network
+    env_file: .env
+
+  cli:
+    image: wordpress:cli
+    container_name: cli
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+    volumes_from: 
+      - wordpress
+    depends_on:
+      - db
+      - wordpress
+    command: "--info"
+    user: xfs
+    networks:
+      - flat-network
+    env_file: .env
+
+volumes:
+  wordpress:
+  db:
+networks:
+  flat-network:
